@@ -64,7 +64,7 @@ try {
             <div class="mb-3">
                 <input type="password" name="password" class="form-control" placeholder="Password" required>
             </div>
-            <button type="submit" class="btn btn-primary">Inloggen</button>
+            <button type="submit" class="btn btn-primary">Login</button>
         </form>
         <br>
         <a href="user/user-register.php">Nog geen account? Registreer hier!</a>
