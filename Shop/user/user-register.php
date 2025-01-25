@@ -2,31 +2,45 @@
 require "../includes/user-class.php";
 
 try {
+    
+    session_start();
+    
+   
+    if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+        $csrf_token = bin2hex(random_bytes(32));
+        $_SESSION['csrf_token'] = $csrf_token;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            throw new Exception("Invalid CSRF token.");
+        }
+
         $user = new User();
 
-        // Haal de formuliergegevens op en ontsmet ze voor XSS bescherming
-        $name = htmlspecialchars($_POST['name'], ENT_QUOTES, 'UTF-8');
-        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL); // Sanitize email input
+        
+        $name = htmlspecialchars(trim($_POST['name']));
+        $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'];
 
-        // E-mail validatie
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!$email) {
             throw new Exception("Ongeldig e-mailadres.");
         }
 
-        // Hash het wachtwoord veilig
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+     
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Registreer de gebruiker
-        $user->registerUser($name, $email, $hashedPassword);
+        
+        $user->registerUser($name, $email, $hashed_password);
+
         echo "Registratie gelukt!";
         header("refresh:2, url=user-login.php");
-    } 
+        exit();
+    }
 } catch (Exception $e) {
     echo $e->getMessage();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -39,10 +53,13 @@ try {
 <body>
     <h2>Account aanmaken</h2>
     <form method="POST">
+      
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <input type="text" name="name" placeholder="Name" required>
         <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Password" required>
-        <input type="submit" value="Register">
+        <input type="submit" value="Registreer">
     </form>
 </body>
 </html>

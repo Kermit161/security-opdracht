@@ -2,35 +2,45 @@
 require "includes/user-class.php";
 session_start();
 
-// Redirect als gebruiker al ingelogd is
+
 if (isset($_SESSION['login_status']) && $_SESSION['login_status'] == true) {
     header("Location: user/user-dashboard.php");
     exit();
 }
 
 try {
+  
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user = new User();
 
-        // Haal de formuliergegevens op en ontsmet ze voor XSS bescherming
-        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL); // Sanitize email
+      
+        $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
         $password = $_POST['password'];
 
-        // Haal de gebruiker op uit de database op basis van het e-mailadres
+        if (!$email) {
+            throw new Exception("Ongeldig e-mailadres.");
+        }
+
+        
         $userData = $user->loginUser($email);
 
-        // Controleer of de gebruiker bestaat en het wachtwoord correct is
         if ($userData && password_verify($password, $userData['password'])) {
+         
+            session_regenerate_id(true);
+
+            
             $_SESSION['login_status'] = true;
-            $_SESSION['name'] = htmlspecialchars($userData['naam'], ENT_QUOTES, 'UTF-8'); // Ontsmet de naam voor XSS bescherming
+            $_SESSION['name'] = $userData['naam'];
+
+            
             header("Location: user/user-dashboard.php");
             exit();
         } else {
             echo "Ongeldige email of wachtwoord!";
-            header("refresh:2, url=user/user-login.php");
+            header("refresh:2, url = user/user-login.php");
             exit();
         }
-    } 
+    }
 } catch (Exception $e) {
     echo $e->getMessage();
 }
@@ -45,12 +55,19 @@ try {
     <title>Inloggen</title>
 </head>
 <body>
-<h2>Inloggen</h2>
-<form method="POST">
-    <input type="email" name="email" placeholder="Email" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <input type="submit" value="Inloggen">
-</form>
-<a href="user/user-register.php">Nog geen account?</a>
+    <div class="container mt-5">
+        <h2>Inloggen</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <input type="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="mb-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Inloggen</button>
+        </form>
+        <br>
+        <a href="user/user-register.php">Nog geen account? Registreer hier!</a>
+    </div>
 </body>
 </html>
