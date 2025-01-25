@@ -63,11 +63,11 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Bewerk product</title>
+    <title>edit product</title>
 </head>
 <body>
     <div class="container">
-        <h2>Bewerk product</h2>
+        <h2>edit product</h2>
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="productId" value="<?= $id; ?>">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token']; ?>">
